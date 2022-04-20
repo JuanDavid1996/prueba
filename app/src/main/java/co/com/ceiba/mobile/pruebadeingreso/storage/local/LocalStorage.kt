@@ -1,71 +1,45 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage.local;
+package co.com.ceiba.mobile.pruebadeingreso.storage.local
 
-import android.content.Context;
+import android.content.Context
+import androidx.room.Database
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.User
 
-import java.util.List;
-import java.util.Objects;
+@Database(entities = [User::class], version = 1)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun userDao(): UserDao
+}
 
-import co.com.ceiba.mobile.pruebadeingreso.storage.local.models.RealmUser;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.User;
-import io.realm.Case;
-import io.realm.Realm;
-import io.realm.RealmConfiguration;
-import io.realm.RealmFileUserStore;
+class LocalStorage {
+    val users: List<User>
+        get() = db.userDao().getAll()
 
-import static io.realm.RealmConfiguration.Builder;
-
-public class LocalStorage {
-
-    private static Realm realm;
-    Converter converter;
-
-    public LocalStorage() {
-        converter = new Converter();
+    fun saveUsers(users: List<User>) {
+        db.userDao().insertAll(users)
     }
 
-    public static void initDb(Context context) {
-        Realm.init(context);
-
-        RealmConfiguration config = new Builder()
-                .schemaVersion(1)
-                .deleteRealmIfMigrationNeeded()
-                .build();
-
-        Realm.setDefaultConfiguration(config);
-        realm = Realm.getDefaultInstance();
+    fun getUsersByName(name: String): List<User> {
+        return db.userDao().getByName(name)
     }
 
-    public List<User> getUsers() {
-        return converter.usersFromRealm(realm.where(RealmUser.class).findAll());
+    fun getUserById(userId: Int): User {
+        return db.userDao().getById(userId)
     }
 
-    public void saveUsers(List<User> users) {
-        realm.executeTransaction(realm -> {
-            for (User user : users) {
-                RealmUser realmUser = realm.createObject(RealmUser.class, user.id);
-                realmUser.name = user.name;
-                realmUser.phone = user.phone;
-                realmUser.email = user.email;
-                realm.insert(realmUser);
-            }
-        });
+    companion object {
+        lateinit var db: AppDatabase
+
+        @JvmStatic
+        fun initDb(context: Context?) {
+            if (context == null) return
+            db = Room.databaseBuilder(
+                context,
+                AppDatabase::class.java, "prueba"
+            )
+                .fallbackToDestructiveMigration()
+                .build()
+        }
     }
 
-    public List<User> getUsersByName(String name) {
-        return converter.usersFromRealm(
-                realm
-                    .where(RealmUser.class)
-                    .contains(RealmUser.RealmUserFields.NAME, name, Case.INSENSITIVE)
-                    .findAll()
-        );
-    }
-
-    public User getUserById(int userId) {
-        return converter.userFromRealm(
-                Objects.requireNonNull(realm
-                        .where(RealmUser.class)
-                        .equalTo(RealmUser.RealmUserFields.ID, userId)
-                        .findFirst())
-        );
-    }
 }

@@ -1,46 +1,44 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage.cloud;
+package co.com.ceiba.mobile.pruebadeingreso.storage.cloud
 
-import android.content.Context;
+import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services.UserService
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post
+import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services.PostService
+import retrofit2.Retrofit
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.User
+import okhttp3.OkHttpClient
+import retrofit2.Response
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
-import java.util.List;
+class CloudStorage() {
 
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.helpers.InternetAccess;
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services.PostService;
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services.UserService;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.User;
-import retrofit2.Retrofit;
-import retrofit2.adapter.rxjava.RxJavaCallAdapterFactory;
-import retrofit2.converter.gson.GsonConverterFactory;
-import rx.Single;
+    suspend fun users(): Response<List<User>> = createRetrofit().create(UserService::class.java).users()
 
-public class CloudStorage {
+    suspend fun posts(): Response<List<Post>> = createRetrofit().create(PostService::class.java).posts()
 
-    Context context;
+    suspend fun getPostsByUser(userId: Int): Response<List<Post>> =
+        createRetrofit().create(PostService::class.java).getPostsByUser(userId)
 
-    public CloudStorage(Context context) {
-        this.context = context;
-    }
+    companion object {
+        fun createRetrofit(): Retrofit {
+            val client = OkHttpClient.Builder().apply {
+                readTimeout(5, TimeUnit.MINUTES)
+                writeTimeout(5, TimeUnit.MINUTES)
+                connectTimeout(5, TimeUnit.MINUTES)
+                addInterceptor { chain ->
+                    var request = chain.request()
+                    request = request.newBuilder()
+                        .build()
+                    val response = chain.proceed(request)
+                    response
+                }
+            }
 
-    public static Retrofit createRetrofit() {
-        return new Retrofit.Builder()
+            return Retrofit.Builder()
                 .baseUrl(Endpoints.URL_BASE)
+                .client(client.build())
                 .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
-                .build();
-    }
-
-    public Single<List<User>> getUsers() {
-        return new InternetAccess<List<User>>(context)
-                .check(createRetrofit().create(UserService.class).getUsers());
-    }
-
-    public Single<List<Post>> getPosts() {
-        return createRetrofit().create(PostService.class).getPosts();
-    }
-
-    public Single<List<Post>> getPostsByUser(int userId) {
-        return new InternetAccess<List<Post>>(context)
-                .check(createRetrofit().create(PostService.class).getPostsByUser(userId));
+                .build()
+        }
     }
 }

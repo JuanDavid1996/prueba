@@ -1,15 +1,3 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage.models;
+package co.com.ceiba.mobile.pruebadeingreso.storage.models
 
-public class Post {
-    public int id;
-    public int userId;
-    public String title;
-    public String body;
-
-    public Post(int id, int userId, String title, String body) {
-        this.id = id;
-        this.userId = userId;
-        this.title = title;
-        this.body = body;
-    }
-}
+class Post(val id: Int, val userId: Int = 0, val title: String, val body: String)

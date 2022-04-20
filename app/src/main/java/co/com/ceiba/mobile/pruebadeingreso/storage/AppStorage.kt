@@ -1,55 +1,58 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage;
+package co.com.ceiba.mobile.pruebadeingreso.storage
 
-import android.content.Context;
-import android.util.Log;
+import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.CloudStorage
+import co.com.ceiba.mobile.pruebadeingreso.storage.local.LocalStorage
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.Result
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.User
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.lang.Exception
 
-import java.util.List;
+class AppStorage {
+    private var cloudStorage: CloudStorage = CloudStorage()
+    private var localStorage: LocalStorage = LocalStorage()
 
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.User;
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.CloudStorage;
-import co.com.ceiba.mobile.pruebadeingreso.storage.local.LocalStorage;
-import rx.Single;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+    suspend fun getUsers(): Result<List<User>> {
+        return withContext(Dispatchers.IO) {
+            var users: List<User> = localStorage.users
+            if (users.isNotEmpty()) {
+                return@withContext Result.Success(users)
+            } else {
+                val call = cloudStorage.users()
+                if (call.isSuccessful) {
+                    users = call.body()!!
+                    localStorage.saveUsers(users)
+                    return@withContext Result.Success(users)
+                } else {
+                    return@withContext Result.Error(Exception(call.message()))
+                }
+            }
 
-public class AppStorage {
-
-    CloudStorage cloudStorage;
-    LocalStorage localStorage;
-
-    public AppStorage(Context context) {
-        localStorage = new LocalStorage();
-        cloudStorage = new CloudStorage(context);
-    }
-
-    public Single<List<User>> getUsers() {
-        //TODO: Check internet access
-
-        final List<User> users = localStorage.getUsers();
-        if (!users.isEmpty()) {
-            return Single.create(subscriber -> subscriber.onSuccess(users));
         }
-
-        return cloudStorage
-                .getUsers()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .map(userList -> {
-                    localStorage.saveUsers(userList);
-                    return userList;
-                });
     }
 
-    public Single<List<Post>> getPostsByUserId(final int userId) {
-        return cloudStorage.getPostsByUser(userId).subscribeOn(Schedulers.io());
+    suspend fun getPostsByUserId(userId: Int): Result<List<Post>> {
+        return withContext(Dispatchers.IO) {
+            val call = cloudStorage.getPostsByUser(userId)
+            if (call.isSuccessful) {
+                return@withContext Result.Success(call.body()!!)
+            } else {
+                return@withContext Result.Error(Exception(call.message()))
+            }
+        }
     }
 
-    public List<User> getUsersByName(String name) {
-        return localStorage.getUsersByName(name);
+    suspend fun getUsersByName(name: String?): List<User> {
+        return withContext(Dispatchers.IO) {
+            return@withContext localStorage.getUsersByName(name!!)
+        }
     }
 
-    public User getUserById(int userId) {
-        return localStorage.getUserById(userId);
+    suspend fun getUserById(userId: Int): User {
+        return withContext(Dispatchers.IO) {
+            return@withContext localStorage.getUserById(userId)
+        }
     }
+
 }

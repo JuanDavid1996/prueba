@@ -1,85 +1,58 @@
-package co.com.ceiba.mobile.pruebadeingreso.view;
+package co.com.ceiba.mobile.pruebadeingreso.view
 
-import android.os.Bundle;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import android.widget.TextView;
+import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import co.com.ceiba.mobile.pruebadeingreso.view.adapters.PostsAdapter
+import android.os.Bundle
+import androidx.activity.viewModels
+import co.com.ceiba.mobile.pruebadeingreso.R
+import androidx.recyclerview.widget.LinearLayoutManager
+import co.com.ceiba.mobile.pruebadeingreso.constants.Constants.USER_ID_EXTRA_KEY
+import co.com.ceiba.mobile.pruebadeingreso.view.viewmodels.PostViewModel
 
-import java.util.List;
-import java.util.Objects;
+class PostActivity : BaseActivity() {
+    private lateinit var name: TextView
+    private lateinit var phone: TextView
+    private lateinit var email: TextView
+    private lateinit var postList: RecyclerView
+    private lateinit var adapter: PostsAdapter
+    var userId = 0
 
-import co.com.ceiba.mobile.pruebadeingreso.R;
-import co.com.ceiba.mobile.pruebadeingreso.storage.AppStorage;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.User;
-import co.com.ceiba.mobile.pruebadeingreso.view.adapters.PostsAdapter;
-import rx.SingleSubscriber;
-import rx.android.schedulers.AndroidSchedulers;
+    private val viewModel: PostViewModel by viewModels()
 
-import static co.com.ceiba.mobile.pruebadeingreso.constants.Constants.USER_ID_EXTRA_KEY;
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_post)
+        name = findViewById(R.id.name)
+        phone = findViewById(R.id.phone)
+        email = findViewById(R.id.email)
+        postList = findViewById(R.id.recyclerViewPostsResults)
+        postList.layoutManager = LinearLayoutManager(this)
+        postList.setHasFixedSize(true)
+        adapter = PostsAdapter()
+        postList.adapter = adapter
+        userId = intent.extras?.getInt(USER_ID_EXTRA_KEY, 0) ?: 0
 
-public class PostActivity extends BaseActivity {
+        viewModel.user.observe(this) { user ->
+            if (user != null) {
+                name.text = user.name
+                phone.text = user.phone
+                email.text = user.email
+                title = getString(R.string.posts) + user.name
+                showProgress()
 
-    TextView name;
-    TextView phone;
-    TextView email;
-    RecyclerView postList;
-    PostsAdapter adapter;
+                viewModel.getPostByUserId(userId)
+            }
+        }
 
-    int userId = 0;
-    AppStorage appStorage;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_post);
-
-        name = findViewById(R.id.name);
-        phone = findViewById(R.id.phone);
-        email = findViewById(R.id.email);
-
-        postList = findViewById(R.id.recyclerViewPostsResults);
-        postList.setLayoutManager(new LinearLayoutManager(this));
-        postList.setHasFixedSize(true);
-
-        adapter = new PostsAdapter();
-        postList.setAdapter(adapter);
-
-        userId = Objects.requireNonNull(getIntent().getExtras()).getInt(USER_ID_EXTRA_KEY, 0);
+        viewModel.posts.observe(this) {
+            hideProgress()
+            adapter.setPosts(it)
+        }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        appStorage = new AppStorage(this);
-
-        User user = appStorage.getUserById(userId);
-
-        name.setText(user.name);
-        phone.setText(user.phone);
-        email.setText(user.email);
-
-        setTitle(getString(R.string.posts) + user.name);
-        showProgress();
-
-        appStorage
-                .getPostsByUserId(userId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new SingleSubscriber<List<Post>>() {
-                    @Override
-                    public void onSuccess(List<Post> posts) {
-                        hideProgress();
-                        adapter.setPosts(posts);
-                    }
-
-                    @Override
-                    public void onError(Throwable error) {
-                        hideProgress();
-                        PostActivity.this.onError(error);
-                    }
-                });
-
+    override fun onStart() {
+        super.onStart()
+        viewModel.getUser(userId)
     }
-
-
 }

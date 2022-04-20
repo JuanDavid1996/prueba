@@ -1,5 +1,5 @@
-package co.com.ceiba.mobile.pruebadeingreso.constants;
+package co.com.ceiba.mobile.pruebadeingreso.constants
 
-public class Constants {
-    public static final String USER_ID_EXTRA_KEY = "USER_ID_EXTRA_KEY";
+object Constants {
+    const val USER_ID_EXTRA_KEY = "USER_ID_EXTRA_KEY"
 }

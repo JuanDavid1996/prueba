@@ -1,13 +1,11 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services;
+package co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services
 
-import java.util.List;
+import retrofit2.http.GET
+import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.Endpoints
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.User
+import retrofit2.Response
 
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.User;
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.Endpoints;
-import retrofit2.http.GET;
-import rx.Single;
-
-public interface UserService {
+interface UserService {
     @GET(Endpoints.GET_USERS)
-    Single<List<User>> getUsers();
+    suspend fun users(): Response<List<User>>
 }

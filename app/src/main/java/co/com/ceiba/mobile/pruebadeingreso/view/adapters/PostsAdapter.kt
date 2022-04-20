@@ -1,59 +1,44 @@
-package co.com.ceiba.mobile.pruebadeingreso.view.adapters;
+package co.com.ceiba.mobile.pruebadeingreso.view.adapters
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
+import android.annotation.SuppressLint
+import androidx.recyclerview.widget.RecyclerView
+import co.com.ceiba.mobile.pruebadeingreso.view.adapters.PostsAdapter.PostViewHolder
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post
+import android.view.ViewGroup
+import android.view.LayoutInflater
+import android.view.View
+import co.com.ceiba.mobile.pruebadeingreso.R
+import android.widget.TextView
+import java.util.ArrayList
 
-import java.util.ArrayList;
-import java.util.List;
+class PostsAdapter(private var posts: List<Post> = ArrayList()) :
+    RecyclerView.Adapter<PostViewHolder>() {
 
-import co.com.ceiba.mobile.pruebadeingreso.R;
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post;
-
-public class PostsAdapter extends RecyclerView.Adapter<PostsAdapter.PostViewHolder> {
-
-    List<Post> posts = new ArrayList<>();
-
-    @NonNull
-    @Override
-    public PostViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater
-                .from(parent.getContext())
-                .inflate(R.layout.post_list_item, parent, false);
-
-        return new PostViewHolder(view);
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
+        val view = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.post_list_item, parent, false)
+        return PostViewHolder(view)
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull PostViewHolder holder, int position) {
-        Post post = posts.get(position);
-
-        holder.title.setText(post.title);
-        holder.body.setText(post.body);
+    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
+        val post = posts[position]
+        holder.title.text = post.title
+        holder.body.text = post.body
     }
 
-    @Override
-    public int getItemCount() {
-        return posts.size();
+    override fun getItemCount(): Int {
+        return posts.size
     }
 
-    public void setPosts(List<Post> posts) {
-        this.posts = posts;
-        notifyDataSetChanged();
+    @SuppressLint("NotifyDataSetChanged")
+    fun setPosts(posts: List<Post>) {
+        this.posts = posts
+        notifyDataSetChanged()
     }
 
-    static class PostViewHolder extends RecyclerView.ViewHolder {
-        public TextView title;
-        public TextView body;
-
-        public PostViewHolder(View view) {
-            super(view);
-
-            title = view.findViewById(R.id.title);
-            body = view.findViewById(R.id.body);
-        }
+    class PostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        var title: TextView = view.findViewById(R.id.title)
+        var body: TextView = view.findViewById(R.id.body)
     }
 }

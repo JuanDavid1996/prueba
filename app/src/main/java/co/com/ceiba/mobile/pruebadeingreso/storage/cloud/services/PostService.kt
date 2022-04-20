@@ -1,19 +1,15 @@
-package co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services;
+package co.com.ceiba.mobile.pruebadeingreso.storage.cloud.services
 
-import java.util.List;
+import retrofit2.http.GET
+import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.Endpoints
+import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post
+import retrofit2.Response
+import retrofit2.http.Query
 
-import co.com.ceiba.mobile.pruebadeingreso.storage.models.Post;
-import co.com.ceiba.mobile.pruebadeingreso.storage.cloud.Endpoints;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
-import rx.Single;
-
-public interface PostService {
+interface PostService {
+    @GET(Endpoints.GET_POST_USER)
+    suspend fun posts(): Response<List<Post>>
 
     @GET(Endpoints.GET_POST_USER)
-    Single<List<Post>> getPosts();
-
-    @GET(Endpoints.GET_POST_USER)
-    Single<List<Post>> getPostsByUser(@Query("userId") int userId);
-
+    suspend fun getPostsByUser(@Query("userId") userId: Int): Response<List<Post>>
 }
