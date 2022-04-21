@@ -1,4 +1,4 @@
-package co.com.ceiba.mobile.pruebadeingreso.view
+package co.com.ceiba.mobile.pruebadeingreso.presentation
 
 import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity

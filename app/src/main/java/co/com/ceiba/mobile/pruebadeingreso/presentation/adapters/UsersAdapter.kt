@@ -1,8 +1,8 @@
-package co.com.ceiba.mobile.pruebadeingreso.view.adapters
+package co.com.ceiba.mobile.pruebadeingreso.presentation.adapters
 
 import android.annotation.SuppressLint
 import androidx.recyclerview.widget.RecyclerView
-import co.com.ceiba.mobile.pruebadeingreso.view.adapters.UsersAdapter.UserViewHolder
+import co.com.ceiba.mobile.pruebadeingreso.presentation.adapters.UsersAdapter.UserViewHolder
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View

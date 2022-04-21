@@ -1,4 +1,4 @@
-package co.com.ceiba.mobile.pruebadeingreso.view.viewmodels
+package co.com.ceiba.mobile.pruebadeingreso.presentation.viewmodels
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
